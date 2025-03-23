@@ -7,6 +7,7 @@ import { createRequire } from "module";
 import create from "./command/create.js";
 import list from "./command/list.js";
 import count from "./command/count.js";
+import blog from "./command/blog.js";
 const require = createRequire(import.meta.url);
 const cowsay = require("cowsay");
 
@@ -39,5 +40,7 @@ program.addCommand(create);
 program.addCommand(list);
 // Add count command
 program.addCommand(count);
+// Add blog command
+program.addCommand(blog);
 
 program.parse(process.argv);

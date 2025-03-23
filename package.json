@@ -6,7 +6,8 @@
   "main": "dist/index.js",
   "module": "dist/index.esm.js",
   "bin": {
-    "sherry-cli": "./dist/cli.js"
+    "sherry-cli": "./dist/cli.js",
+    "sc": "./dist/cli.js"
   },
   "scripts": {
     "start": "node dist/cli.js",
@@ -24,6 +25,7 @@
   "license": "ISC",
   "dependencies": {
     "chalk": "^5.4.1",
+    "clipboardy": "^4.0.0",
     "commander": "^11.0.0",
     "cowsay": "^1.6.0",
     "download-git-repo": "^3.0.2",
