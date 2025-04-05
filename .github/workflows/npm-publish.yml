@@ -21,12 +21,12 @@ jobs:
       packages: write
     
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v3
         with:
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
       
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v3
         with:
           node-version: '18'
           registry-url: 'https://registry.npmjs.org'
@@ -49,7 +49,24 @@ jobs:
       - name: 构建
         run: npm run build
       
+      - name: 配置NPM
+        run: |
+          echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" > ~/.npmrc
+          npm whoami
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      
+      - name: 创建或更新组织
+        run: |
+          if ! npm org ls sz &>/dev/null; then
+            echo "创建组织 sz"
+            npm org create sz || true
+          fi
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      
       - name: 发布到NPM
-        run: npm publish --access public
+        run: |
+          npm publish --access public || npm publish --access public --force
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
