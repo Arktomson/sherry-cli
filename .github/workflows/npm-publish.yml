@@ -16,57 +16,53 @@ on:
 jobs:
   publish:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
-      packages: write
-    
     steps:
-      - uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
-          token: ${{ secrets.GITHUB_TOKEN }}
+      - name: 检出代码
+        uses: actions/checkout@v3
       
-      - uses: actions/setup-node@v3
+      - name: 设置Node.js
+        uses: actions/setup-node@v3
         with:
           node-version: '18'
-          registry-url: 'https://registry.npmjs.org'
-      
-      - name: 配置Git
-        run: |
-          git config user.name github-actions
-          git config user.email github-actions@github.com
       
       - name: 安装依赖
         run: npm ci
       
       - name: 更新版本
+        id: version
         run: |
-          echo "更新版本类型: ${{ github.event.inputs.version_type }}"
-          npm version ${{ github.event.inputs.version_type }} -m "版本更新 %s"
+          git config user.name github-actions
+          git config user.email github-actions@github.com
+          
+          # 获取当前版本
+          CURRENT_VERSION=$(node -p "require('./package.json').version")
+          echo "当前版本: $CURRENT_VERSION"
+          
+          # 更新版本
+          npm version ${{ github.event.inputs.version_type }}
+          
+          # 获取新版本
+          NEW_VERSION=$(node -p "require('./package.json').version")
+          echo "新版本: $NEW_VERSION"
+          echo "version=$NEW_VERSION" >> $GITHUB_OUTPUT
+          
           git push
           git push --tags
       
-      - name: 构建
+      - name: 构建项目
         run: npm run build
       
-      - name: 配置NPM
-        run: |
-          echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" > ~/.npmrc
-          npm whoami
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-      
-      - name: 创建或更新组织
-        run: |
-          if ! npm org ls sz &>/dev/null; then
-            echo "创建组织 sz"
-            npm org create sz || true
-          fi
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-      
       - name: 发布到NPM
+        id: publish
+        uses: JS-DevTools/npm-publish@v3
+        with:
+          token: ${{ secrets.NPM_TOKEN }}
+          access: public
+      
+      - name: 发布结果
+        if: steps.publish.outputs.type != 'none'
         run: |
-          npm publish --access public || npm publish --access public --force
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          echo "包已发布！"
+          echo "版本: ${{ steps.version.outputs.version }}"
+          echo "类型: ${{ steps.publish.outputs.type }}"
+          echo "URL: https://www.npmjs.com/package/@sz/sherry-cli/v/${{ steps.version.outputs.version }}"
