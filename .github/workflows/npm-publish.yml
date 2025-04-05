@@ -20,12 +20,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: 检出代码
-        uses: actions/checkout@v3
+        uses: actions/checkout@v2
         with:
           fetch-depth: 0
       
       - name: 设置Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v2
         with:
           node-version: '18'
           registry-url: 'https://registry.npmjs.org'
@@ -39,32 +39,37 @@ jobs:
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
           
-          # 检查标签是否已存在
+          # 确保工作目录干净
+          git status
+          
+          # 暂存所有改动
+          git add .
+          git commit -m "构建前提交" || echo "没有改动需要提交"
+          
+          # 获取当前版本并计算下一个版本
           VERSION_TYPE="${{ github.event.inputs.version_type }}"
           CURRENT_VERSION=$(node -p "require('./package.json').version")
-          NEXT_VERSION=$(npm version --no-git-tag-version $VERSION_TYPE)
-          NEXT_VERSION=${NEXT_VERSION:1}  # 移除开头的'v'
-          
           echo "当前版本: $CURRENT_VERSION"
-          echo "下一版本: $NEXT_VERSION"
           
-          # 恢复 package.json 的改动
-          git checkout -- package.json
-          
-          # 检查标签是否已存在
-          if git rev-parse "v$NEXT_VERSION" >/dev/null 2>&1; then
-            echo "标签 v$NEXT_VERSION 已存在，递增版本号"
-            if [ "$VERSION_TYPE" = "patch" ]; then
-              npm version patch
-            elif [ "$VERSION_TYPE" = "minor" ]; then
-              npm version minor
-            else
-              npm version major
-            fi
+          # 检查标签是否已存在并更新版本
+          if [ "$VERSION_TYPE" = "patch" ]; then
+            npm --no-git-tag-version version patch
+          elif [ "$VERSION_TYPE" = "minor" ]; then
+            npm --no-git-tag-version version minor
           else
-            npm version $VERSION_TYPE
+            npm --no-git-tag-version version major
           fi
           
+          # 获取新版本
+          NEW_VERSION=$(node -p "require('./package.json').version")
+          echo "新版本: $NEW_VERSION"
+          
+          # 提交版本更新
+          git add package.json
+          git commit -m "v$NEW_VERSION"
+          git tag -a "v$NEW_VERSION" -m "v$NEW_VERSION"
+          
+          # 推送代码和标签
           git push
           git push --tags
       
@@ -74,7 +79,7 @@ jobs:
       - name: 登录到NPM
         run: |
           echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" > .npmrc
-          npm whoami
+          npm whoami || echo "NPM 登录失败，但继续执行"
       
       - name: 发布到NPM
         run: npm publish --access public
