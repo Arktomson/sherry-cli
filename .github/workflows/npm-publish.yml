@@ -20,12 +20,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: 检出代码
-        uses: actions/checkout@v4
+        uses: actions/checkout@v3
         with:
           fetch-depth: 0
       
       - name: 设置Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v3
         with:
           node-version: '18'
           registry-url: 'https://registry.npmjs.org'
@@ -38,14 +38,45 @@ jobs:
         run: |
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
-          npm version ${{ github.event.inputs.version_type }}
+          
+          # 检查标签是否已存在
+          VERSION_TYPE="${{ github.event.inputs.version_type }}"
+          CURRENT_VERSION=$(node -p "require('./package.json').version")
+          NEXT_VERSION=$(npm version --no-git-tag-version $VERSION_TYPE)
+          NEXT_VERSION=${NEXT_VERSION:1}  # 移除开头的'v'
+          
+          echo "当前版本: $CURRENT_VERSION"
+          echo "下一版本: $NEXT_VERSION"
+          
+          # 恢复 package.json 的改动
+          git checkout -- package.json
+          
+          # 检查标签是否已存在
+          if git rev-parse "v$NEXT_VERSION" >/dev/null 2>&1; then
+            echo "标签 v$NEXT_VERSION 已存在，递增版本号"
+            if [ "$VERSION_TYPE" = "patch" ]; then
+              npm version patch
+            elif [ "$VERSION_TYPE" = "minor" ]; then
+              npm version minor
+            else
+              npm version major
+            fi
+          else
+            npm version $VERSION_TYPE
+          fi
+          
           git push
           git push --tags
       
       - name: 构建项目
         run: npm run build
       
+      - name: 登录到NPM
+        run: |
+          echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" > .npmrc
+          npm whoami
+      
       - name: 发布到NPM
-        run: npm publish
+        run: npm publish --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }} 
