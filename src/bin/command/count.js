@@ -1,7 +1,7 @@
 import { Command } from "commander";
 import fs from "fs/promises";
 import path from "path";
-import { createAsyncQueue } from "../../util.js";
+import { createAsyncQueue } from "../../utils/index.js";
 import ora from "ora";
 
 // Define code file extensions to count

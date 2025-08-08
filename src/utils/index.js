@@ -2,7 +2,7 @@ import chalk from "chalk";
 import fse from "fs-extra";
 import download from "download-git-repo";
 import ora from "ora";
-import { repo, branch } from "./config.js";
+import { repo, branch } from "../config.js";
 import inquirer from "inquirer";
 import shell from "shelljs";
 

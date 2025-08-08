@@ -66,7 +66,7 @@ export const asciiArts = [
   },
 ];
 
-import { isUnicodeSupported } from "./util.js";
+import { isUnicodeSupported } from "./utils/index.js";
 import chalk from "chalk";
 
 const mainSymbols = {

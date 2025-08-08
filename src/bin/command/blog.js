@@ -6,7 +6,7 @@ import ora from "ora";
 import shell from "shelljs";
 import os from "os";
 import { logSymbols } from "../../config.js";
-import { formatProcessors } from "../../blog-utils.js";
+import { formatProcessors } from "../../utils/blog-utils.js";
 
 /**
  * 将博客内容转换为指定格式

@@ -6,7 +6,7 @@ import {
   downloadTemplate,
   execWithSpinner,
   inquirerConfirm,
-} from "../../util.js";
+} from "../../utils/index.js";
 import { cwd, logSymbols, template } from "../../config.js";
 
 const create = new Command("create")
