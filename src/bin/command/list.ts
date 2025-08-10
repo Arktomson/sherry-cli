@@ -1,7 +1,7 @@
 import { Command } from "commander";
 import chalk from "chalk";
-import { table } from "table";
-import { template } from "../../config.js";
+import { table, type TableUserConfig } from "table";
+import { template } from "../../config";
 
 const list = new Command("list")
   .alias("ls")
@@ -23,13 +23,13 @@ const list = new Command("list")
       chalk.yellowBright("Description"),
     ]);
 
-    const config = {
+    const config: TableUserConfig = {
       header: {
-        alignment: "center",
+        alignment: "center" as const,
         content: chalk.greenBright("Available Templates"),
       },
       columns: {
-        0: { alignment: "center", width: 5 }, // # 列居中且宽度固定
+        0: { alignment: "center" as const, width: 5 }, // # 列居中且宽度固定
         1: { width: 15 }, // 模板名称列
         2: { width: 30 }, // 描述列
       },

@@ -1,8 +1,23 @@
 import { Command } from "commander";
 import fs from "fs/promises";
 import path from "path";
-import { createAsyncQueue } from "../../utils/index.js";
+import { createAsyncQueue } from "../../utils/index";
 import ora from "ora";
+
+// 文件统计信息接口
+interface FileStats {
+  file: string;
+  lines: number;
+}
+
+// 目录树节点接口
+interface TreeNode {
+  name: string;
+  isDirectory: boolean;
+  totalLines: number;
+  lines?: number; // 文件节点的行数
+  children?: Record<string, TreeNode>; // 目录节点的子节点
+}
 
 // Define code file extensions to count
 const CODE_FILE_EXTENSIONS = [
@@ -20,18 +35,18 @@ const CODE_FILE_EXTENSIONS = [
 ];
 
 // Count lines in a single file
-const countFileLines = async (filePath) => {
+const countFileLines = async (filePath: string): Promise<number> => {
   try {
     const content = await fs.readFile(filePath, "utf-8");
     return content.split("\n").length;
-  } catch (error) {
-    console.error(`Error reading file ${filePath}:`, error.message);
+  } catch (error: any) {
+    console.error(`Error reading file ${filePath}:`, error?.message || error);
     return 0;
   }
 };
 
 // Recursively get all files in directory
-const getAllFiles = async (dirPath, fileList = []) => {
+const getAllFiles = async (dirPath: string, fileList: string[] = []): Promise<string[]> => {
   const files = await fs.readdir(dirPath);
 
   for (const file of files) {
@@ -53,28 +68,34 @@ const getAllFiles = async (dirPath, fileList = []) => {
 };
 
 // 创建目录树结构
-const createDirectoryTree = (fileStats) => {
-  const tree = {
+const createDirectoryTree = (fileStats: FileStats[]): TreeNode => {
+  const tree: TreeNode = {
     name: "",
     isDirectory: true,
     children: {},
     totalLines: 0,
   };
 
-  fileStats.forEach(({ file, lines }) => {
+  fileStats.forEach(({ file, lines }: FileStats) => {
     const parts = file.split(path.sep);
     let current = tree;
 
-    parts.forEach((part, index) => {
+    parts.forEach((part: string, index: number) => {
       if (index === parts.length - 1) {
         // 文件节点
-        current.children[part] = {
-          name: part,
-          isDirectory: false,
-          lines,
-        };
+        if (current.children) {
+          current.children[part] = {
+            name: part,
+            isDirectory: false,
+            totalLines: 0,
+            lines,
+          };
+        }
       } else {
         // 目录节点
+        if (!current.children) {
+          current.children = {};
+        }
         if (!current.children[part]) {
           current.children[part] = {
             name: part,
@@ -93,12 +114,14 @@ const createDirectoryTree = (fileStats) => {
 };
 
 // 打印树形结构
-const printTree = (node, prefix = "", isLast = true) => {
+const printTree = (node: TreeNode, prefix: string = "", isLast: boolean = true): void => {
   if (!node.name) {
     // 根节点特殊处理
-    Object.values(node.children).forEach((child, index, array) => {
-      printTree(child, "", index === array.length - 1);
-    });
+    if (node.children) {
+      Object.values(node.children).forEach((child, index, array) => {
+        printTree(child, "", index === array.length - 1);
+      });
+    }
     return;
   }
 
@@ -109,12 +132,14 @@ const printTree = (node, prefix = "", isLast = true) => {
     console.log(
       `${prefix}${marker}${node.name}${node.totalLines > 0 ? ` (${node.totalLines} lines)` : ""}`
     );
-    Object.values(node.children).forEach((child, index, array) => {
-      printTree(child, subPrefix, index === array.length - 1);
-    });
+    if (node.children) {
+      Object.values(node.children).forEach((child, index, array) => {
+        printTree(child, subPrefix, index === array.length - 1);
+      });
+    }
   } else {
     console.log(
-      `${prefix}${marker}${node.name.padEnd(45 - prefix.length)}${node.lines.toString().padStart(6)} lines`
+      `${prefix}${marker}${node.name.padEnd(45 - prefix.length)}${(node.lines || 0).toString().padStart(6)} lines`
     );
   }
 };
@@ -130,7 +155,7 @@ const count = new Command("count")
 
       spinner.text = "Counting lines...";
       let totalLines = 0;
-      const fileStats = [];
+      const fileStats: FileStats[] = [];
 
       // 使用异步队列处理文件
       await createAsyncQueue(
@@ -163,8 +188,8 @@ const count = new Command("count")
       console.log("\n" + "=".repeat(60));
       console.log(`\n📈 Total: ${totalLines} lines of code`);
       console.log(`🗂  Files counted: ${files.length}\n`);
-    } catch (error) {
-      console.error("Error during counting:", error.message);
+    } catch (error: any) {
+      console.error("Error during counting:", error?.message || error);
     }
   });
 

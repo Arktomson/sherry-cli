@@ -1,0 +1,11 @@
+{
+  "scripts": {
+    "release": "standard-version",
+    "release:minor": "standard-version --release-as minor",
+    "release:major": "standard-version --release-as major",
+    "release:patch": "standard-version --release-as patch",
+    "release:prerelease-alpha": "standard-version --prerelease alpha",
+    "release:prerelease-beta": "standard-version --prerelease beta",
+    "release:prerelease-rc": "standard-version --prerelease rc"
+  }
+}

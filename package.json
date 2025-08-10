@@ -13,8 +13,9 @@
     "start": "node dist/cli.js",
     "build": "rollup -c",
     "dev": "rollup -c -w",
+    "type-check": "tsc --noEmit",
     "test": "jest",
-    "lint": "eslint .",
+    "lint": "eslint . --ext .ts,.js",
     "format": "prettier --write ."
   },
   "keywords": [
@@ -28,6 +29,7 @@
     "clipboardy": "^4.0.0",
     "commander": "^11.0.0",
     "cowsay": "^1.6.0",
+    "deepmerge": "^4.3.1",
     "download-git-repo": "^3.0.2",
     "figlet": "^1.8.0",
     "fs-extra": "^11.3.0",
@@ -41,11 +43,19 @@
     "@rollup/plugin-json": "^6.0.0",
     "@rollup/plugin-node-resolve": "^15.0.0",
     "@rollup/plugin-terser": "^0.4.0",
+    "@rollup/plugin-typescript": "^12.1.4",
     "@types/fs-extra": "^11.0.4",
+    "@types/inquirer": "^9.0.9",
+    "@types/node": "^24.2.1",
+    "@types/shelljs": "^0.8.17",
     "eslint": "^8.47.0",
     "jest": "^29.6.4",
     "prettier": "^3.0.2",
-    "rollup": "^3.25.0"
+    "rollup": "^3.25.0",
+    "rollup-plugin-copy": "^3.5.0",
+    "rollup-plugin-delete": "^3.0.1",
+    "tslib": "^2.8.1",
+    "typescript": "^5.9.2"
   },
   "repository": {
     "type": "git",

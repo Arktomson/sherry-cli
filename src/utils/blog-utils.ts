@@ -1,8 +1,12 @@
 /**
- * 添加掘金页脚处理函数
- * @type {ProcessorFunction}
+ * 处理函数类型定义
  */
-export function addJuejinFooter(content) {
+type ProcessorFunction = (content: string) => string;
+
+/**
+ * 添加掘金页脚处理函数
+ */
+export function addJuejinFooter(content: string): string {
   // ✍️ 本文使用 [sherry-cli](https://github.com/Arktomson/sherry-cli) 工具转换生成
  
   const juejinFooter = `
@@ -10,7 +14,7 @@ export function addJuejinFooter(content) {
   `;
   return content + juejinFooter;
 }
-export function addJuejinHeader(content) {
+export function addJuejinHeader(content: string): string {
   const juejinHeader = `
   🌸 欢迎访问我的个人博客: [百里静修的花园](https://arktomson.github.io/my-garden/)
   `;
@@ -18,9 +22,8 @@ export function addJuejinHeader(content) {
 }
 /**
  * 处理图片链接函数
- * @type {ProcessorFunction}
  */
-export function processImageLinks(content) {
+export function processImageLinks(content: string): string {
   // 这里可以添加处理图片链接的逻辑
   // 目前只是简单返回原内容，未来可以根据需求实现
   return content;
@@ -28,18 +31,16 @@ export function processImageLinks(content) {
 
 /**
  * 移除一级标题函数
- * @type {ProcessorFunction}
  */
-export function removeH1Title(content) {
+export function removeH1Title(content: string): string {
   // 找到文章中的第一个一级标题并移除整行
   return content.replace(/^\s*# .+$/m, "");
 }
 
 /**
  * 处理代码块函数
- * @type {ProcessorFunction}
  */
-export function processCodeBlocks(content) {
+export function processCodeBlocks(content: string): string {
   // 这里可以添加处理代码块的逻辑
   // 目前只是简单返回原内容，未来可以根据需求实现
   return content;
@@ -47,9 +48,8 @@ export function processCodeBlocks(content) {
 
 /**
  * 处理特殊标签函数，移除特定文档工具使用的标签
- * @type {ProcessorFunction}
  */
-export function removeSpecialTags(content) {
+export function removeSpecialTags(content: string): string {
   // 首先处理 :::code-group 标签，只删除标签，保留内容
   let processedContent = content
     // 替换开始标签 :::code-group
@@ -66,7 +66,7 @@ export function removeSpecialTags(content) {
   // ```js[filename.js] -> * filename.js
   processedContent = processedContent.replace(
     /```(\w+)\s*\[([-\w\.]+)\]/g,
-    function (match, language, filename) {
+    function (match: string, language: string, filename: string) {
       return "* " + filename + "\n\n```" + language;
     }
   );
@@ -79,9 +79,8 @@ export function removeSpecialTags(content) {
 
 /**
  * 格式处理器映射表
- * @type {Object.<string, Array.<ProcessorFunction>>}
  */
-export const formatProcessors = {
+export const formatProcessors: Record<string, ProcessorFunction[]> = {
   // 掘金格式的处理函数链
   juejin: [
     removeSpecialTags,

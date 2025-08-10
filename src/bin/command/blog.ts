@@ -5,16 +5,13 @@ import chalk from "chalk";
 import ora from "ora";
 import shell from "shelljs";
 import os from "os";
-import { logSymbols } from "../../config.js";
-import { formatProcessors } from "../../utils/blog-utils.js";
+import { logSymbols } from "../../utils/terminal";
+import { formatProcessors } from "../../utils/blog-utils";
 
 /**
  * 将博客内容转换为指定格式
- * @param {string} filePath - 博客文件路径
- * @param {string} format - 目标格式
- * @returns {string} - 转换后的内容
  */
-function convertBlogContent(filePath, format) {
+function convertBlogContent(filePath: string, format: string): string {
   if (!fs.existsSync(filePath)) {
     throw new Error(`文件不存在: ${filePath}`);
   }
@@ -37,40 +34,35 @@ function convertBlogContent(filePath, format) {
 
 /**
  * 保存转换后的内容到文件
- * @param {string} content - 转换后的内容
- * @param {string} originalPath - 原始文件路径
- * @param {string} format - 目标格式
- * @param {string|null} outputPath - 指定的输出路径，如果为null则生成默认路径
- * @returns {string} - 输出文件路径
  */
 function saveConvertedContent(
-  content,
-  originalPath,
-  format,
-  outputPath = null
-) {
+  content: string,
+  originalPath: string,
+  format: string,
+  outputPath: string | null = null
+): string {
+  let finalOutputPath: string;
+  
   // 如果没有指定输出路径，生成默认路径
   if (!outputPath) {
     const parsedPath = path.parse(originalPath);
-    outputPath = path.join(
+    finalOutputPath = path.join(
       parsedPath.dir,
       `${parsedPath.name}.${format}${parsedPath.ext}`
     );
   } else {
     // 确保输出路径是绝对路径
-    outputPath = path.resolve(process.cwd(), outputPath);
+    finalOutputPath = path.resolve(process.cwd(), outputPath);
   }
 
-  fs.writeFileSync(outputPath, content, "utf-8");
-  return outputPath;
+  fs.writeFileSync(finalOutputPath, content, "utf-8");
+  return finalOutputPath;
 }
 
 /**
  * 将内容复制到剪贴板
- * @param {string} content - 要复制的内容
- * @returns {boolean} - 复制是否成功
  */
-function copyToClipboard(content) {
+function copyToClipboard(content: string): boolean {
   try {
     const platform = os.platform();
     const tempFile = path.join(os.tmpdir(), `sherry-clip-${Date.now()}.txt`);
@@ -116,10 +108,10 @@ function copyToClipboard(content) {
         `剪贴板命令执行失败: ${result ? result.stderr : "未知错误"}`
       );
     }
-  } catch (error) {
+  } catch (error: any) {
     console.error(
       logSymbols.error,
-      chalk.red(`复制到剪贴板失败: ${error.message}`)
+      chalk.red(`复制到剪贴板失败: ${error?.message || error}`)
     );
     return false;
   }
@@ -187,9 +179,9 @@ const blog = new Command("blog")
         spinner.succeed(`博客内容已成功转换为${format}格式`);
         console.log(logSymbols.success, chalk.green(`输出文件: ${outputPath}`));
       }
-    } catch (error) {
+    } catch (error: any) {
       spinner.fail("转换失败");
-      console.error(logSymbols.error, chalk.red(error.message));
+      console.error(logSymbols.error, chalk.red(error?.message || error));
     }
   });
 

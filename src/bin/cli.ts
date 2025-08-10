@@ -9,6 +9,7 @@ import list from "./command/list.js";
 import count from "./command/count.js";
 import blog from "./command/blog.js";
 import video from "./command/video.js";
+import insert from "./command/insert.js";
 const require = createRequire(import.meta.url);
 const cowsay = require("cowsay");
 
@@ -45,5 +46,7 @@ program.addCommand(count);
 program.addCommand(blog);
 // Add video command
 program.addCommand(video);
+// insert command
+program.addCommand(insert);
 
 program.parse(process.argv);

@@ -2,7 +2,7 @@ import { Command } from "commander";
 import chalk from "chalk";
 import { existsSync } from "fs";
 import { join, dirname } from "path";
-import { logSymbols } from "../../config.js";
+import { logSymbols } from "../../utils/terminal";
 import { spawn } from "child_process";
 import { fileURLToPath } from "url";
 
@@ -39,7 +39,7 @@ async function checkPythonDependencies() {
       shell: true,
     });
 
-    await new Promise((resolve, reject) => {
+    await new Promise<void>((resolve, reject) => {
       pythonVersion.on("close", (code) => {
         if (code !== 0) reject(new Error("Python 3 not found"));
         else resolve();
@@ -57,7 +57,12 @@ async function checkPythonDependencies() {
   return true;
 }
 
-async function generateCaptions(options) {
+interface GenerateCaptionsOptions {
+  dir?: string;
+  [key: string]: any;
+}
+
+async function generateCaptions(options: GenerateCaptionsOptions): Promise<void> {
   // 检查 Python 环境
   if (!(await checkPythonDependencies())) {
     return;
@@ -104,7 +109,7 @@ async function generateCaptions(options) {
     });
 
     // 等待 Python 脚本完成
-    await new Promise((resolve, reject) => {
+    await new Promise<void>((resolve, reject) => {
       pythonProcess.on("close", (code) => {
         if (code === 0) {
           console.log(logSymbols.success, chalk.green("\nPython 脚本执行完成"));
@@ -126,10 +131,10 @@ async function generateCaptions(options) {
         reject(err);
       });
     });
-  } catch (error) {
+  } catch (error: any) {
     console.log(
       logSymbols.error,
-      chalk.red(`发生错误: ${error.message}`)
+      chalk.red(`发生错误: ${error?.message || error}`)
     );
   }
 }

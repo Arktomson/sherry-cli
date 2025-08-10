@@ -4,10 +4,9 @@ import shell from "shelljs";
 import { Command } from "commander";
 import {
   downloadTemplate,
-  execWithSpinner,
-  inquirerConfirm,
-} from "../../utils/index.js";
-import { cwd, logSymbols, template } from "../../config.js";
+} from "../../utils/index";
+import { cwd, template, execWithSpinner, inquirerConfirm } from "../../config";
+import { logSymbols } from "../../utils/terminal";
 
 const create = new Command("create")
   .alias("cr")
@@ -75,8 +74,8 @@ const create = new Command("create")
           chalk.blue("You can run 'npm install' later to install dependencies.")
         );
       }
-    } catch (err) {
-      console.error(chalk.red(err.message));
+    } catch (err: any) {
+      console.error(chalk.red(err?.message || err));
       process.exit(1);
     }
   });
