@@ -1,6 +1,7 @@
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import { readFile } from 'fs/promises';
+import { existsSync } from 'fs';
 
 // 模板接口定义
 interface Template {
@@ -45,6 +46,26 @@ export const { version } = packageJson;
 export const repo = 'Arktomson/cli-template';
 export const branch = 'master';
 export const cwd = process.cwd();
+
+/**
+ * 检测项目使用的包管理器
+ */
+export const getPackageManager = (): 'yarn' | 'pnpm' | 'npm' => {
+  // 检查 lock 文件
+  if (existsSync(join(cwd, 'yarn.lock'))) {
+    return 'yarn';
+  }
+  
+  if (existsSync(join(cwd, 'pnpm-lock.yaml'))) {
+    return 'pnpm';
+  }
+  
+  // 默认使用 npm
+  return 'npm';
+};
+
+// 导出包管理器
+export const packageManager = getPackageManager();
 
 // Re-export terminal utilities
 export { logSymbols, asciiArts, inquirerConfirm, execWithSpinner } from './utils/terminal';

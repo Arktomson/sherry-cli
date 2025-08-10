@@ -1,8 +1,7 @@
 import { Command } from 'commander';
-import { __templateDir, cwd } from '../../config';
-import { logSymbols, startSpinner, stopSpinner } from '../../utils/terminal';
+import { __templateDir, cwd, packageManager } from '../../config';
+import { logSymbols, startSpinner, stopSpinner, executeAsync } from '../../utils/terminal';
 import { renderTemplate, RenderMode } from '../../utils/index';
-import shelljs from 'shelljs';
 import fs from 'fs';
 import { join } from 'path';
 
@@ -17,25 +16,36 @@ const featureList = [
     alias: 'sv',
     process: async (options: InsertOptions) => {
       const templateDirPath = join(__templateDir, 'insert', 'standard-version');
-
+      const { force } = options;
       try {
         if (!fs.existsSync(templateDirPath)) {
           console.log(logSymbols.error, 'Template directory not found');
           return;
         }
 
-        // 安装依赖 - 使用多种方式尝试安装
-        startSpinner('Installing standard-version...');
+        // 安装依赖 - 根据项目使用的包管理器
+        console.log(logSymbols.info, `Installing standard-version with ${packageManager}...`);
         
-        await new Promise((resolve, reject) => {
-          setTimeout(() => {
-            resolve(true);
-          }, 2000);
-        });
-
-        shelljs.exec('npm install standard-version --save-dev --legacy-peer-deps', { silent: true });
+        let installCommand;
+        switch (packageManager) {
+          case 'yarn':
+            installCommand = `yarn add -D standard-version ${force ? '--force' : ''}`;
+            break;
+          case 'pnpm':
+            installCommand = `pnpm add -D standard-version ${force ? '--force' : ''}`;
+            break;
+          default:
+            installCommand = `npm install standard-version --save-dev ${force ? '--force' : ''}`;
+        }
         
-        stopSpinner('succeed', 'standard-version installed successfully');
+        const result = await executeAsync(installCommand, { silent: false });
+        
+        if (result.code === 0) {
+          console.log(logSymbols.success, `standard-version installed successfully with ${packageManager}`);
+        } else {
+          console.log(logSymbols.error, 'Installation failed');
+          return;
+        }
 
         // 使用 renderTemplate 处理模板文件
         await renderTemplate(templateDirPath, cwd, {
