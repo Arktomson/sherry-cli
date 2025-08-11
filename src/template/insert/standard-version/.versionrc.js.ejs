@@ -3,7 +3,7 @@
  * 用于自动化版本管理和 CHANGELOG 生成
  * @type {import('standard-version').Options}
  */
-export default {
+module.exports = {
   /** CHANGELOG 文件的头部内容 */
   "header": "",
   /** CHANGELOG 标题格式模板，支持 Handlebars 语法 */
