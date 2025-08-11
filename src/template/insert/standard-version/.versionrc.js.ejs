@@ -65,8 +65,8 @@ export default {
    */
   "bumpFiles": [
     "package.json",
-    "package-lock.json",
-    "manifest.json"
+    "package-lock.json"<% if (isBrowserPlugin) { %>,
+    "manifest.json"<% } %>
   ],
   
   /** Git tag 前缀，例如 v1.0.0 */

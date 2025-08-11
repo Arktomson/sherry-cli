@@ -67,5 +67,16 @@ export const getPackageManager = (): 'yarn' | 'pnpm' | 'npm' => {
 // 导出包管理器
 export const packageManager = getPackageManager();
 
+export const ApplicationScene = [
+  {
+    name: 'web',
+    alias: 'w',
+  },
+  {
+    name: 'browser-plugin',
+    alias: 'bp',
+  }
+]
+export const BrowserPluginScene = ApplicationScene.find(item => item.name === 'browser-plugin')!;
 // Re-export terminal utilities
 export { logSymbols, asciiArts, inquirerConfirm, execWithSpinner } from './utils/terminal';

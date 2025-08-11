@@ -6,7 +6,6 @@ import { promisify } from 'util';
 import { exec } from 'child_process';
 import { spawn } from 'child_process';
 // 创建 promise 版本的 exec
-const execAsync = promisify(exec);
 
 // 创建 spinner 单例，配置动画效果
 const spinner = ora({

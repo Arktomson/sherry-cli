@@ -1,12 +1,18 @@
 import { Command } from 'commander';
-import { __templateDir, cwd, packageManager } from '../../config';
-import { logSymbols, startSpinner, stopSpinner, executeAsync } from '../../utils/terminal';
+import { __templateDir, ApplicationScene, BrowserPluginScene, cwd, packageManager } from '../../config';
+import {
+  logSymbols,
+  startSpinner,
+  stopSpinner,
+  executeAsync,
+} from '../../utils/terminal';
 import { renderTemplate, RenderMode } from '../../utils/index';
 import fs from 'fs';
 import { join } from 'path';
 
 interface InsertOptions {
   force?: boolean;
+  scene?: string
 }
 
 const featureList = [
@@ -16,7 +22,9 @@ const featureList = [
     alias: 'sv',
     process: async (options: InsertOptions) => {
       const templateDirPath = join(__templateDir, 'insert', 'standard-version');
-      const { force } = options;
+      const { force, scene } = options;
+      const isBrowserPlugin = BrowserPluginScene.name === scene || scene === BrowserPluginScene.alias;
+     
       try {
         if (!fs.existsSync(templateDirPath)) {
           console.log(logSymbols.error, 'Template directory not found');
@@ -24,8 +32,11 @@ const featureList = [
         }
 
         // 安装依赖 - 根据项目使用的包管理器
-        console.log(logSymbols.info, `Installing standard-version with ${packageManager}...`);
-        
+        console.log(
+          logSymbols.info,
+          `Installing standard-version with ${packageManager}...`
+        );
+
         let installCommand;
         switch (packageManager) {
           case 'yarn':
@@ -37,11 +48,14 @@ const featureList = [
           default:
             installCommand = `npm install standard-version --save-dev ${force ? '--force' : ''}`;
         }
-        
+
         const result = await executeAsync(installCommand, { silent: false });
-        
+
         if (result.code === 0) {
-          console.log(logSymbols.success, `standard-version installed successfully with ${packageManager}`);
+          console.log(
+            logSymbols.success,
+            `standard-version installed successfully with ${packageManager}`
+          );
         } else {
           console.log(logSymbols.error, 'Installation failed');
           return;
@@ -50,6 +64,8 @@ const featureList = [
         // 使用 renderTemplate 处理模板文件
         await renderTemplate(templateDirPath, cwd, {
           mode: RenderMode.INCREMENT,
+          // 传递渲染变量
+          isBrowserPlugin,
         });
         console.log(
           logSymbols.success,

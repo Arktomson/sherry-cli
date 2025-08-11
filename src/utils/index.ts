@@ -2,10 +2,10 @@ import chalk from "chalk";
 import fse from "fs-extra";
 import download from "download-git-repo";
 import merge from "deepmerge";
+import ejs from "ejs"
 import { repo, branch } from "../config";
 import { join } from "path";
 import { startSpinner, stopSpinner, stopSpinnerOnly, inquirerConfirm } from "./terminal";
-
 /**
  * 下载模板
  */
@@ -159,6 +159,7 @@ export enum RenderMode {
 export interface RenderTemplateOptions {
   /** 渲染模式 */
   mode: RenderMode;
+  ejsData?: Record<string, any>;
   // 预留扩展字段
   [key: string]: any;
 }
@@ -225,6 +226,39 @@ const renderDirectory = async (
 type FileProcessor = (sourceFile: string, targetFile: string, options: RenderTemplateOptions) => Promise<void>;
 
 /**
+ * EJS 模板处理器
+ */
+const ejsProcessor = async (
+  sourceFile: string,
+  targetFile: string,
+  options: RenderTemplateOptions
+): Promise<void> => {
+  try {
+    // 读取 ejs 模板文件
+    const template = await fse.readFile(sourceFile, 'utf8');
+    
+    // 生成目标文件名（移除 .ejs 扩展名）
+    const actualTargetFile = targetFile.replace(/\.ejs$/, '');
+    
+    // 检查目标文件是否已存在
+    if (await fse.pathExists(actualTargetFile)) {
+      console.log(chalk.yellow(`File ${actualTargetFile} already exists, skipping...`));
+      return;
+    }
+    
+    // 获取渲染数据（从 options 中获取）
+    const ejsData = options;
+    
+    // 使用 ejs 渲染模板
+    const rendered = ejs.render(template, ejsData);
+    
+    // 写入渲染后的文件
+    await fse.writeFile(actualTargetFile, rendered, 'utf8');
+  } catch (error: any) {
+    throw new Error(`Failed to process EJS template: ${error.message}`);
+  }
+};
+/**
  * 深度合并 package.json 文件
  */
 const packageJsonProcessor = async (
@@ -274,6 +308,7 @@ const packageJsonProcessor = async (
  */
 const fileProcessors: Record<string, FileProcessor> = {
   'package.json': packageJsonProcessor,
+  '.ejs': ejsProcessor,
   // 可以在这里添加更多特殊文件的处理器
   // 例如：
   // '.gitignore': mergeGitignore,
