@@ -2,9 +2,8 @@ import { join } from "path";
 import chalk from "chalk";
 import shell from "shelljs";
 import { Command } from "commander";
-import {
-  downloadTemplate,
-} from "../../utils/index";
+import { downloadTemplate } from "../../utils/index";
+import { tryInitGitRepository } from "../../utils/git";
 import { cwd, template, execWithSpinner, inquirerConfirm } from "../../config";
 import { logSymbols } from "../../utils/terminal";
 
@@ -17,6 +16,7 @@ const create = new Command("create")
     "choose a template through the list command to check the template type"
   )
   .option("-f, --force", "overwrite target directory if it exists", false)
+  .option("--skip-git", "do not run git init in the new project", false)
   .action(async (name, options) => {
     // 验证name输入是否合法
     if (
@@ -49,6 +49,11 @@ const create = new Command("create")
       await downloadTemplate(options.template, targetPath, {
         force: options.force,
       });
+
+      if (!options.skipGit) {
+        await tryInitGitRepository(targetPath);
+      }
+
       console.log(logSymbols.arrow, chalk.green("enter the project directory"));
 
       shell.cd(targetPath);

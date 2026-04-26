@@ -1,32 +1,33 @@
 import chalk from "chalk";
 import fse from "fs-extra";
-import download from "download-git-repo";
 import merge from "deepmerge";
 import ejs from "ejs"
-import { repo, branch } from "../config";
+import { __templateDir, resolveTemplateDirName } from "../config";
 import { join } from "path";
 import { startSpinner, stopSpinner, stopSpinnerOnly, inquirerConfirm } from "./terminal";
 /**
- * 下载模板
+ * 从发布包内置的 template 目录复制项目模板到目标路径（不拉取远程仓库）
  */
 export const downloadTemplate = async (
   template: string,
   dest: string,
-  { force = false }: { force?: boolean } = {},
-  options: any = {}
+  { force = false }: { force?: boolean } = {}
 ): Promise<void> => {
-  const tmpDir = `${dest}/.download-temp`;
+  const dirName = resolveTemplateDirName(template);
+  const templatePath = join(__templateDir, dirName);
   try {
-    // 确保临时目录存在
-    await fse.ensureDir(tmpDir);
+    if (!(await fse.pathExists(templatePath))) {
+      throw new Error(
+        `Template "${template}" does not exist in built-in templates (path: ${templatePath})`
+      );
+    }
 
-    // 首先检查目标目录是否为空
+    // 目标目录已存在且非空时的覆盖确认
     const exists = await fse.pathExists(dest);
     if (exists) {
       const files = await fse.readdir(dest);
       if (files.length > 0) {
         if (!force) {
-          // 停止任何可能正在运行的 spinner
           stopSpinnerOnly();
 
           console.log(
@@ -39,50 +40,20 @@ export const downloadTemplate = async (
               "Now, You can choose to overwrite the existing files or exit.",
           });
           if (!confirm) {
-            // 清理临时目录
-            await fse.remove(tmpDir);
             process.exit(1);
           }
         }
-        // 如果使用了 force 选项或用户确认，清空目录
         await fse.emptyDir(dest);
       }
     }
 
-    // 开始下载模板
-    startSpinner("Downloading template...");
+    startSpinner("Copying template...");
 
-    await new Promise<void>((resolve, reject) => {
-      download(`${repo}#${branch}`, tmpDir, options, (err) => {
-        if (err) {
-          reject(err);
-          return;
-        }
-        resolve();
-      });
-    });
+    await fse.copy(templatePath, dest, { overwrite: true });
 
-    // 首先验证模板是否存在
-    const templatePath = `${tmpDir}/template/${template}`;
-    if (!(await fse.pathExists(templatePath))) {
-      // 清理临时目录
-      await fse.remove(tmpDir);
-      throw new Error(`Template ${template} does not exist`);
-    }
-
-    // 复制模板文件到目标目录
-    await fse.copy(templatePath, dest);
-
-    // 清理临时目录
-    await fse.remove(tmpDir);
-
-    stopSpinner("succeed", chalk.green("Template downloaded successfully!"));
+    stopSpinner("succeed", chalk.green("Template copied successfully!"));
   } catch (err: any) {
-    stopSpinner("fail", chalk.red(`Download failed: ${err?.message || err}`));
-    // 清理临时目录
-    if (await fse.pathExists(tmpDir)) {
-      await fse.remove(tmpDir);
-    }
+    stopSpinner("fail", chalk.red(`Template copy failed: ${err?.message || err}`));
     throw err;
   }
 };

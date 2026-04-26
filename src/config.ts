@@ -28,10 +28,22 @@ export const template: Template[] = [
     description: 'Nuxt.js template',
   },
   {
-    name: 'npm-package',
-    description: 'npm package template',
+    name: 'nestjs',
+    description: 'NestJS (default @nestjs/cli starter)',
   },
 ];
+
+/**
+ * 与 `src/template/<目录名>` 对应；短名/惯用别名
+ */
+export const templateDirAliases: Record<string, string> = {
+  'vue-ts': 'vue3-ts',
+  vue: 'vue3-ts',
+  nest: 'nestjs',
+};
+
+export const resolveTemplateDirName = (name: string): string =>
+  templateDirAliases[name] ?? name;
 
 export const __filename = fileURLToPath(import.meta.url);
 export const __dirname = dirname(__filename);
@@ -42,9 +54,6 @@ const packagePath = join(__dirname, '..', 'package.json');
 const packageJson: { version: string } = JSON.parse(await readFile(packagePath, 'utf8'));
 export const { version } = packageJson;
 
-// 路径
-export const repo = 'Arktomson/cli-template';
-export const branch = 'master';
 export const cwd = process.cwd();
 
 /**
