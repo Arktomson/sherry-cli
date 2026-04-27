@@ -375,10 +375,12 @@ const renderFile = async (
  * 将内置 nestjs 模板中的 .ejs 渲染到已拷贝的目标目录，并删除落盘中的 .ejs 源文件。
  * @param dest 已包含 nestjs 模板完整拷贝的目录
  * @param validation 是否加入 class-validator / class-transformer 与全局 ValidationPipe
+ * @param swagger 是否加入 @nestjs/swagger
  */
 export const renderNestjsEjs = async (
   dest: string,
-  validation: boolean
+  validation: boolean,
+  swagger: boolean
 ): Promise<void> => {
   const src = join(__templateDir, "nestjs");
   if (!(await fse.pathExists(src))) {
@@ -387,6 +389,7 @@ export const renderNestjsEjs = async (
   await renderTemplate(src, dest, {
     mode: RenderMode.DIFF_COVER,
     validation,
+    swagger,
   } as RenderTemplateOptions);
   const removeEjs = async (root: string): Promise<void> => {
     if (!(await fse.pathExists(root))) return;

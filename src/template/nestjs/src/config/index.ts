@@ -1,1 +1,1 @@
-export { nodeEnv, envValidationSchema } from './env.validation';
+export { nodeEnv, envValidationSchema, NodeEnv } from './env.validation';

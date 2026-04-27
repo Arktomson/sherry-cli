@@ -51,6 +51,7 @@ const create = new Command("create")
 
       const dirName = resolveTemplateDirName(options.template);
       let nestValidation = true;
+      let nestSwagger = true;
       if (dirName === "nestjs") {
         if (process.argv.includes("--no-validation")) {
           nestValidation = false;
@@ -64,6 +65,16 @@ const create = new Command("create")
         } else {
           nestValidation = true;
         }
+
+        if (process.stdout.isTTY) {
+          nestSwagger = await inquirerConfirm({
+            type: "confirm",
+            default: true,
+            message: "Add Swagger (OpenAPI documentation at /api)?",
+          });
+        } else {
+          nestSwagger = true;
+        }
       }
 
       const targetPath = join(cwd, name);
@@ -72,7 +83,7 @@ const create = new Command("create")
       });
 
       if (dirName === "nestjs") {
-        await renderNestjsEjs(targetPath, nestValidation);
+        await renderNestjsEjs(targetPath, nestValidation, nestSwagger);
       }
 
       if (!options.skipGit) {

@@ -1,11 +1,24 @@
 <%_ if (validation) { _%>
 import { ValidationPipe } from '@nestjs/common';
 <%_ } _%>
+<%_ if (swagger) { _%>
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+<%_ } _%>
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
+import { AllExceptionsFilter, TransformInterceptor } from './common';
+import { nodeEnv } from './config';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+  // CORS：只在开发环境开启，生产环境由部署策略（Nginx/网关）处理
+  if (nodeEnv === 'development') {
+    app.enableCors();
+  }
+  // 全局异常过滤器
+  app.useGlobalFilters(new AllExceptionsFilter());
+  // 响应格式统一
+  app.useGlobalInterceptors(new TransformInterceptor());
 <%_ if (validation) { _%>
   app.useGlobalPipes(
     new ValidationPipe({
@@ -14,6 +27,16 @@ async function bootstrap() {
       transformOptions: { enableImplicitConversion: true },
     }),
   );
+<%_ } _%>
+<%_ if (swagger) { _%>
+  // Swagger 配置
+  const config = new DocumentBuilder()
+    .setTitle('API Documentation')
+    .setDescription('NestJS API description')
+    .setVersion('1.0')
+    .build();
+  const document = SwaggerModule.createDocument(app, config<%_ if (validation) { _%>, { deepScan: true }<%_ } _%>);
+  SwaggerModule.setup('api', app, document);
 <%_ } _%>
   await app.listen(process.env.PORT ?? 3000);
 }

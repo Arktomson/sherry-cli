@@ -1,12 +1,15 @@
 import * as Joi from 'joi';
 
 /**
+ * NODE_ENV 枚举类型
+ */
+export type NodeEnv = 'development' | 'production' | 'test';
+
+/**
  * 封装 NODE_ENV，供模块外使用（模块内推荐用 ConfigService）
  * - Joi 校验已保证值只能是 development / production / test
  */
-export const nodeEnv = (process.env.NODE_ENV ?? 'development') as
-  | 'development'
-  | 'production'
+export const nodeEnv: NodeEnv = (process.env.NODE_ENV ?? 'development') as NodeEnv;
 
 /**
  * 环境变量校验 schema
@@ -15,7 +18,7 @@ export const nodeEnv = (process.env.NODE_ENV ?? 'development') as
  */
 export const envValidationSchema = Joi.object({
   NODE_ENV: Joi.string()
-    .valid('development', 'production')
+    .valid('development', 'production', 'test')
     .required(),
   PORT: Joi.number().port().default(3000),
 
