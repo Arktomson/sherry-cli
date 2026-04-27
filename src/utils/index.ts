@@ -370,3 +370,35 @@ const renderFile = async (
       throw new Error(`Unsupported render mode: ${mode}`);
   }
 };
+
+/**
+ * 将内置 nestjs 模板中的 .ejs 渲染到已拷贝的目标目录，并删除落盘中的 .ejs 源文件。
+ * @param dest 已包含 nestjs 模板完整拷贝的目录
+ * @param validation 是否加入 class-validator / class-transformer 与全局 ValidationPipe
+ */
+export const renderNestjsEjs = async (
+  dest: string,
+  validation: boolean
+): Promise<void> => {
+  const src = join(__templateDir, "nestjs");
+  if (!(await fse.pathExists(src))) {
+    throw new Error("NestJS template not found in built-in templates");
+  }
+  await renderTemplate(src, dest, {
+    mode: RenderMode.DIFF_COVER,
+    validation,
+  } as RenderTemplateOptions);
+  const removeEjs = async (root: string): Promise<void> => {
+    if (!(await fse.pathExists(root))) return;
+    const entries = await fse.readdir(root, { withFileTypes: true });
+    for (const ent of entries) {
+      const p = join(root, ent.name);
+      if (ent.isDirectory()) {
+        await removeEjs(p);
+      } else if (ent.isFile() && ent.name.endsWith(".ejs")) {
+        await fse.remove(p);
+      }
+    }
+  };
+  await removeEjs(dest);
+};
