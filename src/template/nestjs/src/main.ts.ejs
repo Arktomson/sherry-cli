@@ -29,7 +29,6 @@ async function bootstrap() {
   );
 <%_ } _%>
 <%_ if (swagger) { _%>
-  // Swagger 配置
   const config = new DocumentBuilder()
     .setTitle('API Documentation')
     .setDescription('NestJS API description')
@@ -38,6 +37,8 @@ async function bootstrap() {
   const document = SwaggerModule.createDocument(app, config<%_ if (validation) { _%>, { deepScan: true }<%_ } _%>);
   SwaggerModule.setup('api', app, document);
 <%_ } _%>
+  app.enableShutdownHooks();
+
   await app.listen(process.env.PORT ?? 3000);
 }
 bootstrap();
