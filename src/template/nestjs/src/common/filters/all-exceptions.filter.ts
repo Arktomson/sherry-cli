@@ -4,7 +4,6 @@ import {
   ArgumentsHost,
   HttpException,
   HttpStatus,
-  Injectable,
 } from '@nestjs/common';
 import { Response } from 'express';
 
@@ -13,7 +12,6 @@ import { Response } from 'express';
  * 统一错误响应格式为 { success: false, result: 错误信息 }
  */
 @Catch()
-@Injectable()
 export class AllExceptionsFilter implements ExceptionFilter {
   catch(exception: unknown, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
