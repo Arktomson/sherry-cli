@@ -7,12 +7,23 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { AllExceptionsFilter, TransformInterceptor } from './common';
-import { nodeEnv } from './config';
+import { nodeEnv, NodeEnv } from './config';
+import { Logger, PinoLogger } from 'nestjs-pino';
+import helmet from 'helmet';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule, { bufferLogs: true });
+  // 使用 PinoLogger 替换默认 Logger（自动记录请求日志 + 结构化输出）
+  app.useLogger(app.get(PinoLogger));
+  // 安全头：关闭 CSP 和 crossOriginEmbedderPolicy，兼容非纯 API 项目
+  app.use(
+    helmet({
+      contentSecurityPolicy: false,
+      crossOriginEmbedderPolicy: false,
+    }),
+  );
   // CORS：只在开发环境开启，生产环境由部署策略（Nginx/网关）处理
-  if (nodeEnv === 'development') {
+  if (nodeEnv === NodeEnv.Development) {
     app.enableCors();
   }
   // 全局异常过滤器
