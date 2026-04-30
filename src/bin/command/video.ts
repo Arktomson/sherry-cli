@@ -17,8 +17,7 @@ const video = new Command("video")
     "directory containing video files (default: current directory)"
   )
   .action(async (options) => {
-    console.log('1')
-    if (!options.generate) {
+      if (!options.generate) {
       console.log(
         logSymbols.error,
         chalk.red("Please specify an action. Use -g to generate captions.")
@@ -68,14 +67,16 @@ async function generateCaptions(options: GenerateCaptionsOptions): Promise<void>
     return;
   }
 
-  // Python 脚本路径 (从 dist 目录到 src/scripts)
-  const pythonScriptPath = join(__dirname, "..", "src", "scripts", "whisper_subtitles.py");
+  // 生产环境: dist/scripts/   开发环境: src/bin/scripts/
+  const scriptPath = join(__dirname, "scripts", "whisper_subtitles.py");
+  const pythonScriptPath = existsSync(scriptPath)
+    ? scriptPath
+    : join(__dirname, "..", "scripts", "whisper_subtitles.py");
 
-  // 检查 Python 脚本是否存在
   if (!existsSync(pythonScriptPath)) {
     console.log(
       logSymbols.error,
-      chalk.red("Python 脚本文件不存在: " + pythonScriptPath)
+      chalk.red(`Python 脚本文件不存在: ${pythonScriptPath}`)
     );
     return;
   }

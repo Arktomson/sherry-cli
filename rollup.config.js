@@ -49,10 +49,11 @@ const plugins = [
   }),
   commonjs(),
   json(),
-  // 复制模板文件到 dist 目录
+  // 复制模板文件和脚本到 dist 目录
   copy({
     targets: [
-      { src: "src/template", dest: "dist" }
+      { src: "src/template", dest: "dist" },
+      { src: "src/bin/scripts", dest: "dist" }
     ]
   }),
   terser(),
