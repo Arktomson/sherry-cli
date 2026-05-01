@@ -12,37 +12,37 @@ import { Response } from 'express';
  * 统一错误响应格式为 { success: false, result: 错误信息 }
  */
 @Catch()
-export class AllExceptionsFilter implements ExceptionFilter {
+export class GlobalExceptionFilter implements ExceptionFilter {
   catch(exception: unknown, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
 
     let status: number;
-    let message: string;
+    let result: unknown;
 
     if (exception instanceof HttpException) {
       status = exception.getStatus();
       const exceptionResponse = exception.getResponse();
 
       if (typeof exceptionResponse === 'string') {
-        message = exceptionResponse;
+        result = exceptionResponse;
       } else if (typeof exceptionResponse === 'object') {
         const resp = exceptionResponse as Record<string, unknown>;
-        message = (resp.message as string) || exception.message;
+        result = resp.message || exceptionResponse;
       } else {
-        message = exception.message;
+        result = exception.message;
       }
     } else if (exception instanceof Error) {
       status = HttpStatus.INTERNAL_SERVER_ERROR;
-      message = exception.message || 'Internal server error';
+      result = exception.message || 'Internal server error';
     } else {
       status = HttpStatus.INTERNAL_SERVER_ERROR;
-      message = 'Unknown error';
+      result = 'Unknown error';
     }
 
     response.status(status).json({
       success: false,
-      result: message,
+      result,
     });
   }
 }

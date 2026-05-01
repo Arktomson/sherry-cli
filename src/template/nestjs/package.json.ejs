@@ -7,12 +7,32 @@
   "license": "UNLICENSED",
   "scripts": {
     "build": "nest build",
+<%_ if (database && orm === 'prisma') { -%>
+    "db:generate": "prisma generate",
+    "db:generate:dev": "cross-env NODE_ENV=development prisma generate",
+    "db:generate:prod": "cross-env NODE_ENV=production prisma generate",
+    "db:migrate:dev": "cross-env NODE_ENV=development prisma migrate dev",
+    "db:migrate:deploy": "cross-env NODE_ENV=production prisma migrate deploy",
+    "db:studio": "cross-env NODE_ENV=development prisma studio",
+<%_ } -%>
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
+<%_ if (database && orm === 'prisma') { -%>
+    "prebuild": "cross-env NODE_ENV=production prisma generate",
+<%_ } -%>
     "start": "nest start",
+<%_ if (database && orm === 'prisma') { -%>
+    "prestart:dev": "cross-env NODE_ENV=development prisma generate",
+<%_ } -%>
     "start:dev": "cross-env NODE_ENV=development nest start --watch",
+<%_ if (database && orm === 'prisma') { -%>
+    "prestart:debug": "cross-env NODE_ENV=development prisma generate",
+<%_ } -%>
     "start:debug": "cross-env NODE_ENV=development nest start --debug --watch",
     "start:prod": "cross-env NODE_ENV=production node dist/main",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
+<%_ if (database && orm === 'prisma') { -%>
+    "pretest": "cross-env NODE_ENV=development prisma generate",
+<%_ } -%>
     "test": "jest",
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
@@ -21,15 +41,24 @@
   },
   "dependencies": {
     "@nestjs/common": "^11.0.1",
-    "@nestjs/config": "^3.2.0",
+    "@nestjs/config": "^4.0.4",
     "@nestjs/core": "^11.0.1",
     "@nestjs/platform-express": "^11.0.1",
 <%_ if (swagger) { -%>
     "@nestjs/swagger": "^11.0.6",
 <%_ } -%>
+<%_ if (rateLimit) { -%>
+    "@nestjs/throttler": "^6.4.0",
+<%_ } -%>
 <%_ if (validation) { -%>
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.1",
+<%_ } -%>
+<%_ if (database && orm === 'prisma') { -%>
+    "@prisma/adapter-pg": "^7.6.0",
+    "@prisma/client": "^7.6.0",
+    "dotenv": "^17.3.1",
+    "pg": "^8.20.0",
 <%_ } -%>
     "nestjs-pino": "^4.0.0",
     "pino": "^9.0.0",
@@ -55,6 +84,9 @@
     "globals": "^17.0.0",
     "jest": "^30.0.0",
     "prettier": "^3.4.2",
+<%_ if (database && orm === 'prisma') { -%>
+    "prisma": "^7.6.0",
+<%_ } -%>
     "source-map-support": "^0.5.21",
     "supertest": "^7.0.0",
     "ts-jest": "^29.2.5",

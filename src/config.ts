@@ -1,7 +1,6 @@
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import { readFile } from 'fs/promises';
-import { existsSync } from 'fs';
 
 // 模板接口定义
 interface Template {
@@ -45,36 +44,29 @@ export const templateDirAliases: Record<string, string> = {
 export const resolveTemplateDirName = (name: string): string =>
   templateDirAliases[name] ?? name;
 
+/**
+ * 所有可作为 `-t` 取值的合法模板名（主名 + 别名），用于 commander 的 `.choices()` 校验。
+ * 未来新增模板 / 别名时，只改 `template` 与 `templateDirAliases` 两处，这里自动同步。
+ */
+export const allTemplateChoices: string[] = [
+  ...new Set([
+    ...template.map((t) => t.name),
+    ...Object.keys(templateDirAliases),
+  ]),
+];
+
 export const __filename = fileURLToPath(import.meta.url);
 export const __dirname = dirname(__filename);
 
 export const __templateDir = join(__dirname, 'template');
 
 const packagePath = join(__dirname, '..', 'package.json');
-const packageJson: { version: string } = JSON.parse(await readFile(packagePath, 'utf8'));
+const packageJson: { version: string } = JSON.parse(
+  await readFile(packagePath, 'utf8'),
+);
 export const { version } = packageJson;
 
 export const cwd = process.cwd();
-
-/**
- * 检测项目使用的包管理器
- */
-export const getPackageManager = (): 'yarn' | 'pnpm' | 'npm' => {
-  // 检查 lock 文件
-  if (existsSync(join(cwd, 'yarn.lock'))) {
-    return 'yarn';
-  }
-  
-  if (existsSync(join(cwd, 'pnpm-lock.yaml'))) {
-    return 'pnpm';
-  }
-  
-  // 默认使用 npm
-  return 'npm';
-};
-
-// 导出包管理器
-export const packageManager = getPackageManager();
 
 export const ApplicationScene = [
   {
@@ -84,8 +76,15 @@ export const ApplicationScene = [
   {
     name: 'browser-plugin',
     alias: 'bp',
-  }
-]
-export const BrowserPluginScene = ApplicationScene.find(item => item.name === 'browser-plugin')!;
+  },
+];
+export const BrowserPluginScene = ApplicationScene.find(
+  (item) => item.name === 'browser-plugin',
+)!;
 // Re-export terminal utilities
-export { logSymbols, asciiArts, inquirerConfirm, execWithSpinner } from './utils/terminal';
+export {
+  logSymbols,
+  asciiArts,
+  inquirerConfirm,
+  execWithSpinner,
+} from './utils/terminal';

@@ -1,26 +1,26 @@
 #!/usr/bin/env node
 
-import { program } from "commander";
-import chalk from "chalk";
-import { version, asciiArts } from "../config.js";
-import { createRequire } from "module";
-import create from "./command/create.js";
-import list from "./command/list.js";
-import count from "./command/count.js";
-import blog from "./command/blog.js";
-import video from "./command/video.js";
-import insert from "./command/insert.js";
+import { program } from 'commander';
+import chalk from 'chalk';
+import { version, asciiArts } from '../config.js';
+import { createRequire } from 'module';
+import create from './command/create.js';
+import list from './command/list.js';
+import count from './command/count.js';
+import blog from './command/blog.js';
+import video from './command/video.js';
+import insert from './command/insert.js';
 const require = createRequire(import.meta.url);
-const cowsay = require("cowsay");
+const cowsay = require('cowsay');
 
 program
-  .name("sherry-cli")
-  .description("cli工具")
-  .version(version, "-v, --version", "output the version number")
-  .usage("<command> [options]")
-  .helpOption("-h, --help", "display help for command")
+  .name('sherry-cli')
+  .description('cli工具')
+  .version(version, '-v, --version', 'output the version number')
+  .usage('<command> [options]')
+  .helpOption('-h, --help', 'display help for command')
   .addHelpText(
-    "beforeAll",
+    'beforeAll',
     chalk.greenBright.bold(
       (() => {
         const art = asciiArts[Math.floor(Math.random() * asciiArts.length)];
@@ -28,12 +28,12 @@ program
           text: art.text,
           r: true,
         });
-      })()
-    ) + "\n"
+      })(),
+    ) + '\n',
   )
   .addHelpText(
-    "after",
-    `\nRun ${chalk.cyan(`sherry-cli <command> --help`)} for detailed usage of given command\n`
+    'after',
+    `\nRun ${chalk.cyan(`sherry-cli <command> --help`)} for detailed usage of given command\n`,
   );
 
 // Add commands

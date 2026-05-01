@@ -1,0 +1,52 @@
+<%_ if (database && orm === 'prisma') { _%>
+import { Injectable, ServiceUnavailableException } from '@nestjs/common';
+<%_ } else { _%>
+import { Injectable } from '@nestjs/common';
+<%_ } _%>
+<%_ if (database && orm === 'prisma') { _%>
+import { PrismaService } from '../infrastructure/prisma/prisma.service';
+<%_ } _%>
+
+export type HealthStatus = 'ok' | 'error';
+
+export interface HealthCheckResult {
+  status: HealthStatus;
+  uptime: number;
+  timestamp: string;
+<%_ if (database && orm === 'prisma') { _%>
+  database: HealthStatus;
+<%_ } _%>
+}
+
+@Injectable()
+export class HealthService {
+<%_ if (database && orm === 'prisma') { _%>
+  constructor(private readonly prisma: PrismaService) {}
+
+<%_ } _%>
+  async check(): Promise<HealthCheckResult> {
+    const base = {
+      status: 'ok' as const,
+      uptime: process.uptime(),
+      timestamp: new Date().toISOString(),
+    };
+
+<%_ if (database && orm === 'prisma') { _%>
+    try {
+      await this.prisma.$queryRaw`SELECT 1`;
+      return {
+        ...base,
+        database: 'ok',
+      };
+    } catch {
+      throw new ServiceUnavailableException({
+        ...base,
+        status: 'error',
+        database: 'error',
+      });
+    }
+<%_ } else { _%>
+    return base;
+<%_ } _%>
+  }
+}

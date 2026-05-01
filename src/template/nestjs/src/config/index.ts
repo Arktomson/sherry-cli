@@ -1,1 +1,6 @@
-export { nodeEnv, envValidationSchema, NodeEnv } from './env.validation';
+export {
+  getEnvFilePath,
+  nodeEnv,
+  envValidationSchema,
+  NodeEnv,
+} from './env.validation';

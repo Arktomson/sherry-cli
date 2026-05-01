@@ -1,0 +1,79 @@
+import { randomUUID } from 'node:crypto';
+import { Module } from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config';
+<%_ if (rateLimit) { _%>
+import { APP_GUARD } from '@nestjs/core';
+import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
+<%_ } _%>
+import { LoggerModule } from 'nestjs-pino';
+import { AppController } from './app.controller';
+import { AppService } from './app.service';
+import {
+  getEnvFilePath,
+  nodeEnv,
+  NodeEnv,
+  envValidationSchema,
+} from './config';
+import { HealthModule } from './health/health.module';
+<%_ if (database && orm === 'prisma') { _%>
+import { PrismaModule } from './infrastructure/prisma/prisma.module';
+<%_ } _%>
+
+@Module({
+  imports: [
+    ConfigModule.forRoot({
+      isGlobal: true,
+      // 根据 NODE_ENV 加载对应文件；生产部署靠平台注入，process.env 优先级最高
+      envFilePath: getEnvFilePath(),
+      validationSchema: envValidationSchema,
+      validationOptions: {
+        abortEarly: false, // 一次性报告所有缺失字段
+      },
+    }),
+    // 结构化日志：生产 JSON，开发 pretty
+    LoggerModule.forRoot({
+      pinoHttp: {
+        level: nodeEnv === NodeEnv.Production ? 'info' : 'debug',
+        // 请求 ID：后端统一生成 UUID，并写回响应头，便于日志排查
+        genReqId: (req, res) => {
+          const requestId = randomUUID();
+
+          res.setHeader('x-request-id', requestId);
+          return requestId;
+        },
+        // 开发环境使用 pino-pretty 输出易读格式
+        transport:
+          nodeEnv === NodeEnv.Development
+            ? { target: 'pino-pretty', options: { colorize: true } }
+            : undefined,
+      },
+    }),
+<%_ if (rateLimit) { _%>
+    ThrottlerModule.forRoot({
+      throttlers: [
+        {
+          ttl: 60_000,
+          limit: 100,
+        },
+      ],
+    }),
+<%_ } _%>
+<%_ if (database && orm === 'prisma') { _%>
+    PrismaModule,
+<%_ } _%>
+    HealthModule,
+  ],
+  controllers: [AppController],
+<%_ if (rateLimit) { _%>
+  providers: [
+    AppService,
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard,
+    },
+  ],
+<%_ } else { _%>
+  providers: [AppService],
+<%_ } _%>
+})
+export class AppModule {}

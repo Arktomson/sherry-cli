@@ -1,1 +1,1 @@
-export { TransformInterceptor } from './transform.interceptor';
+export { ResponseEnvelopeInterceptor } from './response-envelope.interceptor';

@@ -8,7 +8,7 @@ type ProcessorFunction = (content: string) => string;
  */
 export function addJuejinFooter(content: string): string {
   // ✍️ 本文使用 [sherry-cli](https://github.com/Arktomson/sherry-cli) 工具转换生成
- 
+
   const juejinFooter = `
   🌸 欢迎访问我的个人博客: [百里静修的花园](https://arktomson.github.io/my-garden/)
   `;
@@ -34,7 +34,7 @@ export function processImageLinks(content: string): string {
  */
 export function removeH1Title(content: string): string {
   // 找到文章中的第一个一级标题并移除整行
-  return content.replace(/^\s*# .+$/m, "");
+  return content.replace(/^\s*# .+$/m, '');
 }
 
 /**
@@ -53,26 +53,26 @@ export function removeSpecialTags(content: string): string {
   // 首先处理 :::code-group 标签，只删除标签，保留内容
   let processedContent = content
     // 替换开始标签 :::code-group
-    .replace(/^:::code-group\s*$/gm, "")
+    .replace(/^:::code-group\s*$/gm, '')
     // 替换独立的结束标签 :::
-    .replace(/^:::$/gm, "")
+    .replace(/^:::$/gm, '')
     // 处理其他特殊标签
-    .replace(/:::\s*$/gm, "") // 移除行尾的 ::: 标签
-    .replace(/^:::(?!code)[^\n]*$/gm, "") // 移除不是code块的单行:::xxx标签
-    .replace(/^::: \w+\s*$/gm, "") // 移除形如 ::: warning 的标签
-    .replace(/\s*::: \w+\s*/g, ""); // 移除内容中的 ::: 标签
+    .replace(/:::\s*$/gm, '') // 移除行尾的 ::: 标签
+    .replace(/^:::(?!code)[^\n]*$/gm, '') // 移除不是code块的单行:::xxx标签
+    .replace(/^::: \w+\s*$/gm, '') // 移除形如 ::: warning 的标签
+    .replace(/\s*::: \w+\s*/g, ''); // 移除内容中的 ::: 标签
 
   // 将代码块前的文件名标记[file.js]转换为* file.js形式
   // ```js[filename.js] -> * filename.js
   processedContent = processedContent.replace(
     /```(\w+)\s*\[([-\w\.]+)\]/g,
     function (match: string, language: string, filename: string) {
-      return "* " + filename + "\n\n```" + language;
-    }
+      return '* ' + filename + '\n\n```' + language;
+    },
   );
 
   // 去除连续的空行
-  processedContent = processedContent.replace(/\n{3,}/g, "\n\n");
+  processedContent = processedContent.replace(/\n{3,}/g, '\n\n');
 
   return processedContent;
 }

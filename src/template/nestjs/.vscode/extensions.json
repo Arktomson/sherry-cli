@@ -1,0 +1,4 @@
+{
+  "// 说明": "团队推荐插件清单。VS Code 首次打开此工程时会提示成员安装这些插件，确保大家用一致的格式化 / lint 工具链。",
+  "recommendations": ["esbenp.prettier-vscode", "dbaeumer.vscode-eslint"]
+}

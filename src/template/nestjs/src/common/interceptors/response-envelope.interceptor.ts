@@ -8,16 +8,17 @@ import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 
 /**
- * 响应格式统一拦截器
+ * 响应信封拦截器
  * 将所有响应转换为 { success: true, result: data } 格式
  */
 @Injectable()
-export class TransformInterceptor<T>
-  implements NestInterceptor<T, { success: boolean; result: T }>
-{
+export class ResponseEnvelopeInterceptor<T> implements NestInterceptor<
+  T,
+  { success: boolean; result: T }
+> {
   intercept(
-    context: ExecutionContext,
-    next: CallHandler,
+    _context: ExecutionContext,
+    next: CallHandler<T>,
   ): Observable<{ success: boolean; result: T }> {
     return next.handle().pipe(
       map((data) => ({

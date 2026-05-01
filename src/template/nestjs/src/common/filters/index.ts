@@ -1,1 +1,1 @@
-export { AllExceptionsFilter } from './all-exceptions.filter';
+export { GlobalExceptionFilter } from './global-exception.filter';

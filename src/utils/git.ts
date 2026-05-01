@@ -1,9 +1,9 @@
-import { existsSync } from "fs";
-import { join } from "path";
-import { execFile } from "child_process";
-import { promisify } from "util";
-import chalk from "chalk";
-import { logSymbols } from "./terminal";
+import { existsSync } from 'fs';
+import { join } from 'path';
+import { execFile } from 'child_process';
+import { promisify } from 'util';
+import chalk from 'chalk';
+import { logSymbols } from './terminal';
 
 const execFileAsync = promisify(execFile);
 
@@ -12,23 +12,25 @@ const execFileAsync = promisify(execFile);
  * 不自动做首次 commit，避免未配置 user.name / email 时失败。
  */
 export const tryInitGitRepository = async (
-  projectPath: string
+  projectPath: string,
 ): Promise<void> => {
-  if (existsSync(join(projectPath, ".git"))) {
+  if (existsSync(join(projectPath, '.git'))) {
     console.log(
       logSymbols.info,
-      chalk.dim("Git repository already present, skipping git init.")
+      chalk.dim('Git repository already present, skipping git init.'),
     );
     return;
   }
 
   try {
-    await execFileAsync("git", ["-c", "init.defaultBranch=main", "init"], {
+    await execFileAsync('git', ['-c', 'init.defaultBranch=main', 'init'], {
       cwd: projectPath,
     });
     console.log(
       logSymbols.success,
-      chalk.green("Initialized empty Git repository in .git/ (default branch: main).")
+      chalk.green(
+        'Initialized empty Git repository in .git/ (default branch: main).',
+      ),
     );
   } catch (e: unknown) {
     const msg = e instanceof Error ? e.message : String(e);
@@ -37,9 +39,9 @@ export const tryInitGitRepository = async (
       logSymbols.warning,
       chalk.yellow(
         likelyMissing
-          ? "Git not found in PATH; skipped git init. Install Git and run: git init"
-          : `git init skipped: ${msg}`
-      )
+          ? 'Git not found in PATH; skipped git init. Install Git and run: git init'
+          : `git init skipped: ${msg}`,
+      ),
     );
   }
 };

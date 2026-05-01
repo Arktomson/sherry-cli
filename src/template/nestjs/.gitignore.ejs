@@ -4,6 +4,9 @@ node_modules
 # build
 dist
 build
+<%_ if (database && orm === 'prisma') { _%>
+generated
+<%_ } _%>
 
 # tests & coverage
 coverage
@@ -12,7 +15,7 @@ coverage
 # env
 .env
 .env.*
-!.env.development
+.env.development
 
 # logs
 *.log
@@ -24,6 +27,9 @@ pnpm-debug.log*
 # os / ide
 .DS_Store
 .idea
-.vscode
+# .vscode/ 整体忽略，但放过团队共享的两个：settings.json（统一格式化规则源）与 extensions.json（推荐插件）
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
 *.swp
 *.swo

@@ -1,8 +1,8 @@
-import { Command } from "commander";
-import fs from "fs/promises";
-import path from "path";
-import { createAsyncQueue } from "../../utils/index";
-import ora from "ora";
+import { Command } from 'commander';
+import fs from 'fs/promises';
+import path from 'path';
+import { createAsyncQueue } from '../../utils/index';
+import ora from 'ora';
 
 // 文件统计信息接口
 interface FileStats {
@@ -21,24 +21,24 @@ interface TreeNode {
 
 // Define code file extensions to count
 const CODE_FILE_EXTENSIONS = [
-  ".js",
-  ".jsx",
-  ".ts",
-  ".tsx",
-  ".vue",
-  ".css",
-  ".scss",
-  ".less",
-  ".html",
-  ".json",
-  ".md",
+  '.js',
+  '.jsx',
+  '.ts',
+  '.tsx',
+  '.vue',
+  '.css',
+  '.scss',
+  '.less',
+  '.html',
+  '.json',
+  '.md',
 ];
 
 // Count lines in a single file
 const countFileLines = async (filePath: string): Promise<number> => {
   try {
-    const content = await fs.readFile(filePath, "utf-8");
-    return content.split("\n").length;
+    const content = await fs.readFile(filePath, 'utf-8');
+    return content.split('\n').length;
   } catch (error: any) {
     console.error(`Error reading file ${filePath}:`, error?.message || error);
     return 0;
@@ -46,7 +46,10 @@ const countFileLines = async (filePath: string): Promise<number> => {
 };
 
 // Recursively get all files in directory
-const getAllFiles = async (dirPath: string, fileList: string[] = []): Promise<string[]> => {
+const getAllFiles = async (
+  dirPath: string,
+  fileList: string[] = [],
+): Promise<string[]> => {
   const files = await fs.readdir(dirPath);
 
   for (const file of files) {
@@ -55,8 +58,8 @@ const getAllFiles = async (dirPath: string, fileList: string[] = []): Promise<st
 
     if (
       stat.isDirectory() &&
-      !file.startsWith(".") &&
-      file !== "node_modules"
+      !file.startsWith('.') &&
+      file !== 'node_modules'
     ) {
       await getAllFiles(filePath, fileList);
     } else if (stat.isFile()) {
@@ -70,7 +73,7 @@ const getAllFiles = async (dirPath: string, fileList: string[] = []): Promise<st
 // 创建目录树结构
 const createDirectoryTree = (fileStats: FileStats[]): TreeNode => {
   const tree: TreeNode = {
-    name: "",
+    name: '',
     isDirectory: true,
     children: {},
     totalLines: 0,
@@ -114,23 +117,27 @@ const createDirectoryTree = (fileStats: FileStats[]): TreeNode => {
 };
 
 // 打印树形结构
-const printTree = (node: TreeNode, prefix: string = "", isLast: boolean = true): void => {
+const printTree = (
+  node: TreeNode,
+  prefix: string = '',
+  isLast: boolean = true,
+): void => {
   if (!node.name) {
     // 根节点特殊处理
     if (node.children) {
       Object.values(node.children).forEach((child, index, array) => {
-        printTree(child, "", index === array.length - 1);
+        printTree(child, '', index === array.length - 1);
       });
     }
     return;
   }
 
-  const marker = isLast ? "└── " : "├── ";
-  const subPrefix = prefix + (isLast ? "    " : "│   ");
+  const marker = isLast ? '└── ' : '├── ';
+  const subPrefix = prefix + (isLast ? '    ' : '│   ');
 
   if (node.isDirectory) {
     console.log(
-      `${prefix}${marker}${node.name}${node.totalLines > 0 ? ` (${node.totalLines} lines)` : ""}`
+      `${prefix}${marker}${node.name}${node.totalLines > 0 ? ` (${node.totalLines} lines)` : ''}`,
     );
     if (node.children) {
       Object.values(node.children).forEach((child, index, array) => {
@@ -139,21 +146,21 @@ const printTree = (node: TreeNode, prefix: string = "", isLast: boolean = true):
     }
   } else {
     console.log(
-      `${prefix}${marker}${node.name.padEnd(45 - prefix.length)}${(node.lines || 0).toString().padStart(6)} lines`
+      `${prefix}${marker}${node.name.padEnd(45 - prefix.length)}${(node.lines || 0).toString().padStart(6)} lines`,
     );
   }
 };
 
-const count = new Command("count")
-  .alias("c")
-  .description("Count lines of code in current directory")
+const count = new Command('count')
+  .alias('c')
+  .description('Count lines of code in current directory')
   .action(async () => {
     try {
-      const spinner = ora("Scanning files...").start();
+      const spinner = ora('Scanning files...').start();
       const currentDir = process.cwd();
       const files = await getAllFiles(currentDir);
 
-      spinner.text = "Counting lines...";
+      spinner.text = 'Counting lines...';
       let totalLines = 0;
       const fileStats: FileStats[] = [];
 
@@ -173,23 +180,23 @@ const count = new Command("count")
           onProgress: (completed, total) => {
             spinner.text = `Counting lines... ${completed}/${total} files processed`;
           },
-        }
+        },
       );
 
       spinner.stop();
 
       // Output results
-      console.log("\n📊 Code Lines Statistics:\n");
+      console.log('\n📊 Code Lines Statistics:\n');
 
       // 创建并打印树形结构
       const tree = createDirectoryTree(fileStats);
       printTree(tree);
 
-      console.log("\n" + "=".repeat(60));
+      console.log('\n' + '='.repeat(60));
       console.log(`\n📈 Total: ${totalLines} lines of code`);
       console.log(`🗂  Files counted: ${files.length}\n`);
     } catch (error: any) {
-      console.error("Error during counting:", error?.message || error);
+      console.error('Error during counting:', error?.message || error);
     }
   });
 

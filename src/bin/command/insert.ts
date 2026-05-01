@@ -1,18 +1,17 @@
 import { Command } from 'commander';
-import { __templateDir, ApplicationScene, BrowserPluginScene, cwd, packageManager } from '../../config';
-import {
-  logSymbols,
-  startSpinner,
-  stopSpinner,
-  executeAsync,
-} from '../../utils/terminal';
+import { __templateDir, BrowserPluginScene, cwd } from '../../config';
+import { logSymbols, stopSpinner, executeAsync } from '../../utils/terminal';
 import { renderTemplate, RenderMode } from '../../utils/index';
+import {
+  detectPackageManager,
+  addDevDepCommand,
+} from '../../utils/packageManager';
 import fs from 'fs';
 import { join } from 'path';
 
 interface InsertOptions {
   force?: boolean;
-  scene?: string
+  scene?: string;
 }
 
 const featureList = [
@@ -23,8 +22,9 @@ const featureList = [
     process: async (options: InsertOptions) => {
       const templateDirPath = join(__templateDir, 'insert', 'standard-version');
       const { force, scene } = options;
-      const isBrowserPlugin = BrowserPluginScene.name === scene || scene === BrowserPluginScene.alias;
-     
+      const isBrowserPlugin =
+        BrowserPluginScene.name === scene || scene === BrowserPluginScene.alias;
+
       try {
         if (!fs.existsSync(templateDirPath)) {
           console.log(logSymbols.error, 'Template directory not found');
@@ -32,29 +32,19 @@ const featureList = [
         }
 
         // 安装依赖 - 根据项目使用的包管理器
+        const pm = detectPackageManager(cwd);
         console.log(
           logSymbols.info,
-          `Installing standard-version with ${packageManager}...`
+          `Installing standard-version with ${pm}...`,
         );
 
-        let installCommand;
-        switch (packageManager) {
-          case 'yarn':
-            installCommand = `yarn add -D standard-version ${force ? '--force' : ''}`;
-            break;
-          case 'pnpm':
-            installCommand = `pnpm add -D standard-version ${force ? '--force' : ''}`;
-            break;
-          default:
-            installCommand = `npm install standard-version --save-dev ${force ? '--force' : ''}`;
-        }
-
-        const result = await executeAsync(installCommand, { silent: false });
+        const installCmd = addDevDepCommand(pm, 'standard-version', { force });
+        const result = await executeAsync(installCmd, { silent: false });
 
         if (result.code === 0) {
           console.log(
             logSymbols.success,
-            `standard-version installed successfully with ${packageManager}`
+            `standard-version installed successfully with ${pm}`,
           );
         } else {
           console.log(logSymbols.error, 'Installation failed');
@@ -69,7 +59,7 @@ const featureList = [
         });
         console.log(
           logSymbols.success,
-          'Template files processed and package.json updated'
+          'Template files processed and package.json updated',
         );
         console.log(logSymbols.info, 'Available commands:');
         console.log('  • npm run release - Create a release');
@@ -96,7 +86,7 @@ const insert = new Command('insert')
   .action(async (feature, options: InsertOptions) => {
     // 注意：options 参数目前未使用，但保留以备将来扩展
     const featureItem = featureList.find(
-      (item) => item.name === feature || item.alias === feature
+      (item) => item.name === feature || item.alias === feature,
     );
     if (!featureItem) {
       console.log(logSymbols.error, `feature [${feature}] not found`);
